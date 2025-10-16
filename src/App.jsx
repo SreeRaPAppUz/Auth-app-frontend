@@ -20,7 +20,14 @@ export default function App() {
       try {
         const res = await getProfile();
         setUser(res.data.user); // Persist user on refresh
-      } catch {
+      } catch (error) {
+        if (error.response?.status === 401) {
+          // Normal: user not logged in, ignore silently
+          console.info("No active session — user not logged in.");
+        } else {
+          // Unexpected error
+          console.error("Error fetching profile:", error);
+        }
         setUser(null);
       } finally {
         setLoading(false);
@@ -39,12 +46,26 @@ export default function App() {
     <>
       <Navbar user={user} setUser={setUser} notifyLogout={notifyLogout} />
       <Routes>
-        <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Login setUser={setUser} notifyLogin={notifyLogin} />}/>
+        <Route
+          path="/"
+          element={
+            user ? <Navigate to="/dashboard" /> : <Login setUser={setUser} notifyLogin={notifyLogin} />
+          }
+        />
         <Route path="/login" element={<Login setUser={setUser} notifyLogin={notifyLogin} />} />
         <Route path="/register" element={<Register notifyRegister={notifyRegister} />} />
-        <Route path="/dashboard" element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} />
-        <Route path="/users" element={user?.role === "admin" ? <Users /> : <Navigate to="/dashboard" />} />
-        <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
+        <Route
+          path="/dashboard"
+          element={user ? <Dashboard user={user} /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/users"
+          element={user?.role === "admin" ? <Users /> : <Navigate to="/dashboard" />}
+        />
+        <Route
+          path="/profile"
+          element={user ? <Profile /> : <Navigate to="/login" />}
+        />
       </Routes>
       <ToastContainer position="top-right" autoClose={2000} />
     </>
